@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -44,8 +45,18 @@ const fetchMatches = async (): Promise<Match[]> => {
     throw error;
   }
   
-  // Apply type assertion to ensure data conforms to Match[] interface
-  return (data || []) as Match[];
+  // Process the data to handle any potential null/error values
+  // and ensure it matches our Match interface
+  const processedMatches = (data || []).map(match => {
+    return {
+      ...match,
+      team1: match.team1 || { id: match.team1_id || '', name: 'Unknown Team' },
+      team2: match.team2 || { id: match.team2_id || '', name: 'Unknown Team' },
+      winner: match.winner || { id: match.winner_id || '', name: 'Unknown Team' }
+    };
+  }) as Match[];
+  
+  return processedMatches;
 };
 
 const Matches = () => {
