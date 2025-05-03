@@ -71,19 +71,34 @@ const AddMatchForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const onSubmit = async (data: MatchFormValues) => {
     setIsSubmitting(true);
     try {
-      const { error } = await supabase.from('matches').insert([data]);
-      
+      // Ensure all required fields are present and match the Supabase schema
+      const sanitizedData = {
+        date: data.date,
+        location: data.location,
+        team1_id: data.team1_id,
+        team2_id: data.team2_id,
+        team1_score: data.team1_score || 0, // Ensure non-nullable values
+        team1_wickets: data.team1_wickets || 0,
+        team1_overs: data.team1_overs || 0,
+        team2_score: data.team2_score || 0,
+        team2_wickets: data.team2_wickets || 0,
+        team2_overs: data.team2_overs || 0,
+        winner_id: data.winner_id,
+      };
+  
+      const { error } = await supabase.from('matches').insert([sanitizedData]);
+  
       if (error) {
         throw error;
       }
-      
+  
       toast({
         title: "Success!",
         description: "Match has been created successfully.",
       });
-      
+  
       form.reset();
-      
+  
       if (onSuccess) {
         onSuccess();
       }
@@ -98,6 +113,7 @@ const AddMatchForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       setIsSubmitting(false);
     }
   };
+  
 
   const team1Id = form.watch('team1_id');
   const team2Id = form.watch('team2_id');
