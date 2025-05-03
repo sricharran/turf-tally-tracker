@@ -2,14 +2,16 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-const Index = () => {
+export interface RedirectProps {
+  to: string;
+}
+
+export const Redirect: React.FC<RedirectProps> = ({ to }) => {
   const navigate = useNavigate();
   
   useEffect(() => {
-    navigate('/');
-  }, [navigate]);
+    navigate(to);
+  }, [navigate, to]);
   
   return null;
 };
-
-export default Index;
