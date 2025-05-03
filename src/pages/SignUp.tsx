@@ -9,7 +9,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/components/ui/use-toast';
 import { UserPlus } from 'lucide-react';
-import { supabase } from '../supabaseClient';
+import { supabase } from '@/integrations/supabase/client';
+
 
 // Define the form schema
 const signUpSchema = z.object({
