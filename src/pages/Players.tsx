@@ -3,15 +3,62 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { players } from '@/lib/data';
 import { Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
+// Define TypeScript interface for player data
+interface Player {
+  id: string;
+  name: string;
+  matches: number;
+  total_runs: number;
+  wickets: number;
+  catches: number;
+}
+
+const fetchPlayers = async (): Promise<Player[]> => {
+  const { data, error } = await supabase
+    .from('players')
+    .select('*');
+  
+  if (error) {
+    console.error('Error fetching players:', error);
+    throw error;
+  }
+  
+  return data || [];
+};
 
 const Players = () => {
   const [searchTerm, setSearchTerm] = React.useState('');
   
+  const { data: players = [], isLoading, error } = useQuery({
+    queryKey: ['players'],
+    queryFn: fetchPlayers
+  });
+
   const filteredPlayers = players.filter(player =>
     player.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-7xl py-10">
+        <h1 className="text-3xl font-bold tracking-tight">Players</h1>
+        <p className="text-muted-foreground mt-2">Loading player data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-7xl py-10">
+        <h1 className="text-3xl font-bold tracking-tight">Players</h1>
+        <p className="text-red-500 mt-2">Error loading player data. Please try again later.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container max-w-7xl py-10">
@@ -48,7 +95,7 @@ const Players = () => {
                   </div>
                   <div>
                     <p className="text-muted-foreground">Runs</p>
-                    <p className="font-mono">{player.totalRuns}</p>
+                    <p className="font-mono">{player.total_runs}</p>
                   </div>
                   <div>
                     <p className="text-muted-foreground">Wickets</p>

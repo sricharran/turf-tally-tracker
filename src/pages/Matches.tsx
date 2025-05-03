@@ -2,10 +2,76 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { matches } from '@/lib/data';
 import { CalendarIcon } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+
+interface Team {
+  id: string;
+  name: string;
+}
+
+interface Match {
+  id: string;
+  date: string;
+  location: string;
+  team1_id: string;
+  team1_score: number;
+  team1_wickets: number;
+  team1_overs: number;
+  team2_id: string;
+  team2_score: number;
+  team2_wickets: number;
+  team2_overs: number;
+  winner_id: string;
+  team1: Team;
+  team2: Team;
+  winner: Team;
+}
+
+const fetchMatches = async (): Promise<Match[]> => {
+  // Fetch matches with team names using joins
+  const { data, error } = await supabase
+    .from('matches')
+    .select(`
+      *,
+      team1:team1_id(id, name),
+      team2:team2_id(id, name),
+      winner:winner_id(id, name)
+    `);
+  
+  if (error) {
+    console.error('Error fetching matches:', error);
+    throw error;
+  }
+  
+  return data || [];
+};
 
 const Matches = () => {
+  const { data: matches = [], isLoading, error } = useQuery({
+    queryKey: ['matches'],
+    queryFn: fetchMatches
+  });
+
+  if (isLoading) {
+    return (
+      <div className="container max-w-7xl py-10">
+        <h1 className="text-3xl font-bold tracking-tight">Matches</h1>
+        <p className="text-muted-foreground mt-2">Loading match data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="container max-w-7xl py-10">
+        <h1 className="text-3xl font-bold tracking-tight">Matches</h1>
+        <p className="text-red-500 mt-2">Error loading match data. Please try again later.</p>
+      </div>
+    );
+  }
+
   // Sort matches by date, newest first
   const sortedMatches = [...matches].sort((a, b) => 
     new Date(b.date).getTime() - new Date(a.date).getTime()
@@ -37,17 +103,17 @@ const Matches = () => {
                 <div className="flex justify-between items-center">
                   <div>
                     <p className="text-lg font-mono">
-                      {match.team1.score}/{match.team1.wickets}
+                      {match.team1_score}/{match.team1_wickets}
                       <span className="text-xs text-muted-foreground ml-1">
-                        ({match.team1.overs} ov)
+                        ({match.team1_overs} ov)
                       </span>
                     </p>
                   </div>
                   <div>
                     <p className="text-lg font-mono">
-                      {match.team2.score}/{match.team2.wickets}
+                      {match.team2_score}/{match.team2_wickets}
                       <span className="text-xs text-muted-foreground ml-1">
-                        ({match.team2.overs} ov)
+                        ({match.team2_overs} ov)
                       </span>
                     </p>
                   </div>
@@ -57,7 +123,7 @@ const Matches = () => {
                     {match.location}
                   </p>
                   <p className="text-sm font-medium">
-                    {match.winner} won
+                    {match.winner.name} won
                   </p>
                 </div>
               </CardContent>
