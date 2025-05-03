@@ -1,7 +1,5 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -11,6 +9,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { toast } from '@/components/ui/use-toast';
 import { LogIn } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 // Define the form schema
 const loginSchema = z.object({
@@ -23,9 +22,7 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 const Login = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [, setIsAdmin] = useLocalStorage('isAdmin', false);
 
-  // Initialize the form
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -37,24 +34,31 @@ const Login = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For demo purposes, any login attempt will work
-      setIsAdmin(true);
-      
-      toast({
-        title: "Login successful!",
-        description: "Welcome back to Turf Tally.",
+      const { error, data: session } = await supabase.auth.signInWithPassword({
+        email: data.email,
+        password: data.password,
       });
-      
-      navigate('/');
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Invalid credentials. Please try again.",
-      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Fetch user profile (role-based navigation)
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', session.user.id)
+        .single();
+
+      toast({ title: 'Login successful!', description: 'Welcome back!' });
+
+      if (profile?.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/');
+      }
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -63,11 +67,9 @@ const Login = () => {
   return (
     <div className="container max-w-md py-10">
       <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Login</CardTitle>
-          <CardDescription>
-            Enter your credentials to access your account
-          </CardDescription>
+        <CardHeader>
+          <CardTitle>Login</CardTitle>
+          <CardDescription>Enter your credentials to log in</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -99,25 +101,12 @@ const Login = () => {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
-                    Logging in...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <LogIn size={16} />
-                    <span>Log In</span>
-                  </div>
-                )}
+                {isLoading ? 'Logging in...' : 'Log In'}
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline">
-              Sign up
-            </Link>
+            Don't have an account? <Link to="/signup" className="text-primary hover:underline">Sign Up</Link>
           </div>
         </CardContent>
       </Card>

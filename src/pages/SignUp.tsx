@@ -1,16 +1,15 @@
-
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useLocalStorage } from '../hooks/useLocalStorage';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
 import { toast } from '@/components/ui/use-toast';
 import { UserPlus } from 'lucide-react';
+import { supabase } from '../supabaseClient';
 
 // Define the form schema
 const signUpSchema = z.object({
@@ -24,9 +23,7 @@ type SignUpFormValues = z.infer<typeof signUpSchema>;
 const SignUp = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
-  const [, setIsAdmin] = useLocalStorage('isAdmin', false);
 
-  // Initialize the form
   const form = useForm<SignUpFormValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: {
@@ -39,24 +36,24 @@ const SignUp = () => {
   const onSubmit = async (data: SignUpFormValues) => {
     setIsLoading(true);
     try {
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // For this demo, we'll simulate a successful signup
-      // In a real application, you would call your authentication service here
-      
-      toast({
-        title: "Account created!",
-        description: "Welcome to Turf Tally! You can now log in.",
+      const { error, user } = await supabase.auth.signUp({
+        email: data.email,
+        password: data.password,
       });
-      
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      // Add user profile with default role
+      await supabase.from('profiles').insert([
+        { id: user.id, name: data.name, role: 'user' },
+      ]);
+
+      toast({ title: 'Account created!', description: 'You can now log in.' });
       navigate('/login');
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Something went wrong. Please try again.",
-      });
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Error', description: error.message });
     } finally {
       setIsLoading(false);
     }
@@ -65,11 +62,9 @@ const SignUp = () => {
   return (
     <div className="container max-w-md py-10">
       <Card>
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
-          <CardDescription>
-            Enter your details below to create your account
-          </CardDescription>
+        <CardHeader>
+          <CardTitle>Create an Account</CardTitle>
+          <CardDescription>Enter your details below</CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
@@ -114,25 +109,12 @@ const SignUp = () => {
                 )}
               />
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
-                    Creating Account...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <UserPlus size={16} />
-                    <span>Sign Up</span>
-                  </div>
-                )}
+                {isLoading ? 'Creating Account...' : 'Sign Up'}
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Already have an account?{' '}
-            <Link to="/login" className="text-primary hover:underline">
-              Log in
-            </Link>
+            Already have an account? <Link to="/login" className="text-primary hover:underline">Log In</Link>
           </div>
         </CardContent>
       </Card>
