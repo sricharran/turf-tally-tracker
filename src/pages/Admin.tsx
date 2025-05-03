@@ -1,9 +1,26 @@
-
 import React, { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from '@/components/ui/tabs';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
@@ -12,6 +29,7 @@ import AddMatchForm from '../components/AddMatchForm';
 import AddPerformanceForm from '../components/AddPerformanceForm';
 import AddPlayerForm from '../components/AddPlayerForm';
 import AddTeamForm from '../components/AddTeamForm';
+import MatchPlayerAssignmentForm from '../components/MatchPlayerAssignmentForm';
 import { Plus } from 'lucide-react';
 
 const Admin = () => {
@@ -35,13 +53,15 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="matches" className="mt-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="matches">Matches</TabsTrigger>
           <TabsTrigger value="players">Players</TabsTrigger>
           <TabsTrigger value="teams">Teams</TabsTrigger>
           <TabsTrigger value="stats">Statistics</TabsTrigger>
+          <TabsTrigger value="assignments">Assignments</TabsTrigger>
         </TabsList>
-        
+
+        {/* Matches Tab */}
         <TabsContent value="matches">
           <Card>
             <CardHeader>
@@ -51,7 +71,12 @@ const Admin = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Dialog open={activeDialog === 'match'} onOpenChange={(open) => open ? setActiveDialog('match') : closeDialog()}>
+              <Dialog
+                open={activeDialog === 'match'}
+                onOpenChange={(open) =>
+                  open ? setActiveDialog('match') : closeDialog()
+                }
+              >
                 <DialogTrigger asChild>
                   <Button className="gap-1">
                     <Plus size={16} />
@@ -75,7 +100,8 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
+        {/* Players Tab */}
         <TabsContent value="players">
           <Card>
             <CardHeader>
@@ -85,7 +111,12 @@ const Admin = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Dialog open={activeDialog === 'player'} onOpenChange={(open) => open ? setActiveDialog('player') : closeDialog()}>
+              <Dialog
+                open={activeDialog === 'player'}
+                onOpenChange={(open) =>
+                  open ? setActiveDialog('player') : closeDialog()
+                }
+              >
                 <DialogTrigger asChild>
                   <Button className="gap-1">
                     <Plus size={16} />
@@ -109,7 +140,8 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
+        {/* Teams Tab */}
         <TabsContent value="teams">
           <Card>
             <CardHeader>
@@ -119,7 +151,12 @@ const Admin = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Dialog open={activeDialog === 'team'} onOpenChange={(open) => open ? setActiveDialog('team') : closeDialog()}>
+              <Dialog
+                open={activeDialog === 'team'}
+                onOpenChange={(open) =>
+                  open ? setActiveDialog('team') : closeDialog()
+                }
+              >
                 <DialogTrigger asChild>
                   <Button className="gap-1">
                     <Plus size={16} />
@@ -142,7 +179,8 @@ const Admin = () => {
             </CardContent>
           </Card>
         </TabsContent>
-        
+
+        {/* Statistics Tab */}
         <TabsContent value="stats">
           <Card>
             <CardHeader>
@@ -152,7 +190,12 @@ const Admin = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <Dialog open={activeDialog === 'stats'} onOpenChange={(open) => open ? setActiveDialog('stats') : closeDialog()}>
+              <Dialog
+                open={activeDialog === 'stats'}
+                onOpenChange={(open) =>
+                  open ? setActiveDialog('stats') : closeDialog()
+                }
+              >
                 <DialogTrigger asChild>
                   <Button className="gap-1">
                     <Plus size={16} />
@@ -172,6 +215,45 @@ const Admin = () => {
               <p className="text-sm text-muted-foreground">
                 Record individual player performances for matches. This data will be used to calculate
                 player statistics shown on the Statistics page.
+              </p>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Assignments Tab */}
+        <TabsContent value="assignments">
+          <Card>
+            <CardHeader>
+              <CardTitle>Assign Players to Match</CardTitle>
+              <CardDescription>
+                Select a match, team, and assign players accordingly.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <Dialog
+                open={activeDialog === 'assign'}
+                onOpenChange={(open) =>
+                  open ? setActiveDialog('assign') : closeDialog()
+                }
+              >
+                <DialogTrigger asChild>
+                  <Button className="gap-1">
+                    <Plus size={16} />
+                    <span>Assign Players</span>
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[700px]">
+                  <DialogHeader>
+                    <DialogTitle>Assign Players to Match</DialogTitle>
+                    <DialogDescription>
+                      Select a match, team, and assign players accordingly.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <MatchPlayerAssignmentForm onSuccess={closeDialog} />
+                </DialogContent>
+              </Dialog>
+              <p className="text-sm text-muted-foreground">
+                Assign players from a team to a specific match.
               </p>
             </CardContent>
           </Card>
