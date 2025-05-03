@@ -34,24 +34,30 @@ const Login = () => {
   const onSubmit = async (data: LoginFormValues) => {
     setIsLoading(true);
     try {
-      const { error, data: session } = await supabase.auth.signInWithPassword({
+      // Sign in the user
+      const { data: session, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password,
       });
-
+  
       if (error) {
         throw new Error(error.message);
       }
-
-      // Fetch user profile (role-based navigation)
-      const { data: profile } = await supabase
+  
+      // Fetch user profile
+      const { data: profile, error: profileError } = await supabase
         .from('profiles')
         .select('role')
         .eq('id', session.user.id)
         .single();
-
+  
+      if (profileError) {
+        throw new Error('Unable to fetch user profile');
+      }
+  
       toast({ title: 'Login successful!', description: 'Welcome back!' });
-
+  
+      // Navigate based on user role
       if (profile?.role === 'admin') {
         navigate('/admin-dashboard');
       } else {
@@ -63,6 +69,7 @@ const Login = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="container max-w-md py-10">

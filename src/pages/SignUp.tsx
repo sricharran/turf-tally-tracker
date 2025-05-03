@@ -37,20 +37,31 @@ const SignUp = () => {
   const onSubmit = async (data: SignUpFormValues) => {
     setIsLoading(true);
     try {
-      const { error, user } = await supabase.auth.signUp({
+      // Sign up the user
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
         email: data.email,
         password: data.password,
       });
-
-      if (error) {
-        throw new Error(error.message);
+  
+      if (signUpError) {
+        throw new Error(signUpError.message);
       }
-
-      // Add user profile with default role
-      await supabase.from('profiles').insert([
+  
+      const user = signUpData?.user;
+  
+      if (!user) {
+        throw new Error('User creation failed. Please try again.');
+      }
+  
+      // Insert user profile
+      const { error: profileError } = await supabase.from('profiles').insert([
         { id: user.id, name: data.name, role: 'user' },
       ]);
-
+  
+      if (profileError) {
+        throw new Error(`Profile creation failed: ${profileError.message}`);
+      }
+  
       toast({ title: 'Account created!', description: 'You can now log in.' });
       navigate('/login');
     } catch (error: any) {
@@ -59,6 +70,7 @@ const SignUp = () => {
       setIsLoading(false);
     }
   };
+  
 
   return (
     <div className="container max-w-md py-10">
