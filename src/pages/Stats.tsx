@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -7,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useQuery } from '@tanstack/react-query';
 
-// Define TypeScript interfaces
+// Define TypeScript interfaces with the correct property names
 interface PlayerBattingStats {
   player_id: string;
   player_name: string;
@@ -29,6 +28,7 @@ interface PlayerBowlingStats {
   economy: number;
   bowling_average: number;
   maidens: number;
+  strike_rate: number;
 }
 
 interface PlayerWithStats {
@@ -94,7 +94,7 @@ const Stats = () => {
     .filter(p => Number(p.innings) > 0)
     .sort((a, b) => Number(b.batting_average) - Number(a.batting_average));
   const topStrikeRates = [...battingStats]
-    .filter(p => Number(p.total_balls) > 10)
+    .filter(p => p.innings > 0)
     .sort((a, b) => Number(b.strike_rate) - Number(a.strike_rate));
   
   const topWicketTakers = [...bowlingStats].sort((a, b) => Number(b.wickets) - Number(a.wickets));

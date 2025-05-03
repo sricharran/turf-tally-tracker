@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,7 +44,8 @@ const fetchMatches = async (): Promise<Match[]> => {
     throw error;
   }
   
-  return data || [];
+  // Apply type assertion to ensure data conforms to Match[] interface
+  return (data || []) as Match[];
 };
 
 const Matches = () => {
