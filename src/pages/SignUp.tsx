@@ -2,58 +2,60 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useLocalStorage } from '../hooks/useLocalStorage';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
 import { toast } from '@/components/ui/use-toast';
-import { LogIn } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 // Define the form schema
-const loginSchema = z.object({
+const signUpSchema = z.object({
+  name: z.string().min(2, { message: 'Name must be at least 2 characters' }),
   email: z.string().email({ message: 'Please enter a valid email address' }),
-  password: z.string().min(1, { message: 'Password is required' }),
+  password: z.string().min(8, { message: 'Password must be at least 8 characters' }),
 });
 
-type LoginFormValues = z.infer<typeof loginSchema>;
+type SignUpFormValues = z.infer<typeof signUpSchema>;
 
-const Login = () => {
+const SignUp = () => {
   const navigate = useNavigate();
   const [isLoading, setIsLoading] = useState(false);
   const [, setIsAdmin] = useLocalStorage('isAdmin', false);
 
   // Initialize the form
-  const form = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
+  const form = useForm<SignUpFormValues>({
+    resolver: zodResolver(signUpSchema),
     defaultValues: {
+      name: '',
       email: '',
       password: '',
     },
   });
 
-  const onSubmit = async (data: LoginFormValues) => {
+  const onSubmit = async (data: SignUpFormValues) => {
     setIsLoading(true);
     try {
       // Simulate API call delay
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      // For demo purposes, any login attempt will work
-      setIsAdmin(true);
+      // For this demo, we'll simulate a successful signup
+      // In a real application, you would call your authentication service here
       
       toast({
-        title: "Login successful!",
-        description: "Welcome back to Turf Tally.",
+        title: "Account created!",
+        description: "Welcome to Turf Tally! You can now log in.",
       });
       
-      navigate('/');
+      navigate('/login');
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Invalid credentials. Please try again.",
+        description: "Something went wrong. Please try again.",
       });
     } finally {
       setIsLoading(false);
@@ -64,14 +66,27 @@ const Login = () => {
     <div className="container max-w-md py-10">
       <Card>
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Login</CardTitle>
+          <CardTitle className="text-2xl font-bold">Create an account</CardTitle>
           <CardDescription>
-            Enter your credentials to access your account
+            Enter your details below to create your account
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
               <FormField
                 control={form.control}
                 name="email"
@@ -92,7 +107,7 @@ const Login = () => {
                   <FormItem>
                     <FormLabel>Password</FormLabel>
                     <FormControl>
-                      <Input type="password" placeholder="Enter your password" {...field} />
+                      <Input type="password" placeholder="Create a password" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -102,21 +117,21 @@ const Login = () => {
                 {isLoading ? (
                   <div className="flex items-center">
                     <div className="animate-spin mr-2 h-4 w-4 border-2 border-b-transparent rounded-full"></div>
-                    Logging in...
+                    Creating Account...
                   </div>
                 ) : (
                   <div className="flex items-center justify-center gap-2">
-                    <LogIn size={16} />
-                    <span>Log In</span>
+                    <UserPlus size={16} />
+                    <span>Sign Up</span>
                   </div>
                 )}
               </Button>
             </form>
           </Form>
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
-            <Link to="/signup" className="text-primary hover:underline">
-              Sign up
+            Already have an account?{' '}
+            <Link to="/login" className="text-primary hover:underline">
+              Log in
             </Link>
           </div>
         </CardContent>
@@ -125,4 +140,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;

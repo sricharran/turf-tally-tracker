@@ -3,7 +3,7 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLocalStorage } from '../hooks/useLocalStorage';
 import { Button } from './ui/button';
-import { User, LogOut } from 'lucide-react';
+import { User, LogOut, UserPlus } from 'lucide-react';
 
 const Header = () => {
   const [isAdmin, setIsAdmin] = useLocalStorage('isAdmin', false);
@@ -57,12 +57,20 @@ const Header = () => {
               </Button>
             </>
           ) : (
-            <Link to="/login">
-              <Button variant="outline" size="sm" className="gap-1">
-                <User size={16} />
-                <span>Login</span>
-              </Button>
-            </Link>
+            <>
+              <Link to="/login">
+                <Button variant="outline" size="sm" className="gap-1">
+                  <User size={16} />
+                  <span>Login</span>
+                </Button>
+              </Link>
+              <Link to="/signup">
+                <Button variant="secondary" size="sm" className="gap-1">
+                  <UserPlus size={16} />
+                  <span>Sign Up</span>
+                </Button>
+              </Link>
+            </>
           )}
         </div>
       </div>
